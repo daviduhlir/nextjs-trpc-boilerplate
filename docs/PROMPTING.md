@@ -4,13 +4,27 @@ This guide helps you write effective prompts for AI tools (like Claude Code) to 
 
 ## Quick Tips
 
-✅ **DO include:**
+✅ **DO include in every prompt:**
 - Clear description of the feature
 - Which layer you need (Frontend page, tRPC route, Service/DAO)
 - Permission requirements
 - Data validation (Zod schemas)
 - Tests
-- Code style requirements (decorators, transient props, etc.)
+- Code style requirements
+
+✅ **CRITICAL styling rules:**
+- ALWAYS use `styled-components` for frontend - never inline styles
+- Check theme colors FIRST - if color needed doesn't exist, add to `src/styles/theme.ts`
+- NEVER hardcode colors - always use `props.theme.colors.*`
+- Use transient props with `$` prefix for styled component props
+- All styled components should import from theme
+
+✅ **CRITICAL import rules:**
+- Backend and frontend are COMPLETELY separated
+- Frontend ONLY imports types from `src/shared/types.ts` (use `import type`)
+- If new types needed, add to `src/shared/types.ts` as type-only exports
+- Never, EVER import backend code in frontend
+- Backend routers/services are NOT accessible from frontend
 
 ❌ **DON'T forget:**
 - Permissions need `@PermissionsGuard.PermissionRequired()` decorator
@@ -18,7 +32,7 @@ This guide helps you write effective prompts for AI tools (like Claude Code) to 
 - Frontend components use transient props (`$variant`, not `variant`)
 - All methods need documentation comments
 - Tests should run on built code (`npm test`)
-- Backend and frontend must NOT share code (only types)
+- No hardcoded colors or values in styles - use theme
 
 ---
 
@@ -55,7 +69,22 @@ I need to create a new feature for [FEATURE_NAME].
 - All public methods need JSDoc comments explaining purpose, parameters, and return value
 - Make methods `public` when using decorators
 - Use CommonJS module format (TypeScript compiles to CommonJS)
-- No inline styles - use styled-components
+
+### Styling (CRITICAL):
+- ALWAYS use styled-components, never inline styles
+- Frontend imports styled-components components and uses theme colors
+- Check theme at `src/styles/theme.ts` for available colors
+- If color/spacing/size needed doesn't exist, ADD IT to theme first
+- Use `props.theme.colors.*` for colors, `props.theme.spacing.*` for sizes
+- Use transient props with $ prefix: `$variant`, `$size`, `$maxWidth`
+- NEVER hardcode colors like `#FF0000` or `rgb(255,0,0)` - always use theme
+
+### Imports (CRITICAL):
+- Backend and Frontend are COMPLETELY separated - no code sharing
+- Frontend uses ONLY types from `src/shared/types.ts` - use `import type`
+- Never import from `@/server/*` in frontend code
+- If new types needed, export from `src/shared/types.ts` as type-only
+- Backend imports `@/server/*`, Frontend imports `@/pages/*`, `@/components/*`, `@/utils/*`
 
 ### Tests:
 - Create tests: `src/server/services/[FEATURE].service.test.ts`
@@ -100,9 +129,13 @@ I need to create a blog posts feature.
 
 ### Frontend:
 - Create page: `src/pages/blog.tsx`
+- Use styled-components for styling (check theme colors first!)
+- If new colors needed, add to `src/styles/theme.ts` first
 - Display list of posts with titles and content
 - Show "Create Post" button only if user has permission
 - Link to individual post page: `src/pages/blog/[postId].tsx`
+- Use transient props: `<Button $variant="primary">Create</Button>`
+- Import types ONLY from `src/shared/types.ts`
 
 ### Backend:
 - Router: `src/server/routers/posts.ts`
