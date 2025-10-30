@@ -5,6 +5,7 @@ This directory contains detailed documentation about the application architectur
 ## Files
 
 - **DEVELOPMENT.md** - Step-by-step guides for creating new pages, routes, and secured features (START HERE!)
+- **PROMPTING.md** - Guide for prompting AI (Claude Code, etc.) to generate features
 - **ARCHITECTURE.md** - Application architecture, layered design, and data flow
 - **SECURITY.md** - Authentication, JWT tokens, permission checking, and best practices
 
@@ -18,6 +19,14 @@ Read [DEVELOPMENT.md](./DEVELOPMENT.md) to learn:
 - Service + DAO pattern implementation
 - Writing tests
 - Best practices and common patterns
+
+### Using AI to Generate Code
+Read [PROMPTING.md](./PROMPTING.md) to learn:
+- How to write effective prompts for AI (Claude Code, etc.)
+- What to include in prompts (permissions, tests, code style)
+- Common mistakes to avoid
+- Copy-paste prompt templates for different features
+- Post-generation checklist to verify code quality
 
 ### For New Developers
 Start with [ARCHITECTURE.md](./ARCHITECTURE.md) to understand:
