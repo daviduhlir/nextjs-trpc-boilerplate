@@ -16,11 +16,18 @@
     "format:check": "prettier --check \"src/**/*.{ts,tsx,json,md}\"",
     "type-check": "tsc --noEmit",
     "test": "mocha",
-    "test:watch": "mocha --watch"
+    "test:watch": "mocha --watch",
+    "db:generate": "prisma generate",
+    "db:migrate:dev": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
+    "db:push": "prisma db push",
+    "db:reset": "prisma migrate reset",
+    "db:studio": "prisma studio"
   },
   "dependencies": {
     "@david.uhlir/permissions-guard": "^0.0.14",
     "@david.uhlir/services": "^2.0.11",
+    "@prisma/client": "^6.18.0",
     "@tanstack/react-query": "^5.45.0",
     "@trpc/client": "^11.0.0",
     "@trpc/next": "^11.0.0",
@@ -42,6 +49,7 @@
     "chai": "^4.4.1",
     "mocha": "^10.7.0",
     "prettier": "^3.3.3",
+    "prisma": "^6.18.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.6.3"
   },

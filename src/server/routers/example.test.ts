@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import { ServicesContext } from '../services';
 import { UserService } from '../services/user.service';
+import { UserDAO } from '../services/user.dao';
 import { exampleRouter } from './example';
 import { ensureServicesInitialized } from '../init';
 
@@ -21,6 +22,7 @@ describe('Example Router', () => {
       headers: undefined,
       services: {
         user: ServicesContext.lookup(UserService),
+        userDAO: ServicesContext.lookup(UserDAO),
       },
       userId: undefined,
       permissions: undefined,

@@ -64,21 +64,20 @@ export const myRouter = router({
 });
 ```
 
-### Permission-Based Endpoint (Specific Permissions)
+### Permission-Protected Endpoint
 ```typescript
-import { permissionProcedure, router } from '../auth/procedures';
+import { protectedProcedure, router } from '../auth/procedures';
 import { z } from 'zod';
 
 export const myRouter = router({
-  deleteUser: permissionProcedure(['user/delete', 'admin'])
+  // protectedProcedure requires JWT token and wraps with PermissionsGuard context
+  // Actual permission checks happen in service/DAO methods
+  deleteUser: protectedProcedure
     .input(z.object({ userId: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      // Permission context is automatically available via PermissionsGuard
-      // No need to manually wrap with withPermissions - permissionProcedure does it automatically
-      const userService = ctx.services.user;
-      userService.deleteUser(input.userId);
-
-      return { success: true };
+      // Service/DAO will check permissions via PermissionsGuard
+      const userDAO = ctx.services.userDAO;
+      return userDAO.delete(input.userId);  // DAO calls checkRequiredPermissions()
     }),
 });
 ```
@@ -106,19 +105,50 @@ export class UserService extends Service {
 
 ## Permission Checking
 
-### Two Approaches
+Permission checking happens **only in service/DAO layer**, not in routes.
 
-**1. In Router (Declarative)**
+### Route Level
+`protectedProcedure` requires valid JWT token:
+- Wraps handler with `runWithPermissions()` to set async context
+- Throws `UNAUTHORIZED` if no token
+- Does NOT check permissions - that happens in services
+
+### Service/DAO Level (Permission Validation)
 ```typescript
-permissionProcedure(['user/write', 'admin']).mutation(...)
-// Permission is checked before handler runs
+// In service/DAO method
+await PermissionsGuard.checkRequiredPermissions(['user/delete']);
+// Gets permissions from async_local_storage (set by protectedProcedure middleware)
+// Throws exception if permission missing
 ```
 
-**2. In Service (Imperative)**
+### How It Works
+
 ```typescript
-const hasPermission = PermissionsGuard.checkPermission('user/write');
-if (!hasPermission) throw new Error('No permission');
+// Route: Requires authentication, permissions checked in service/DAO
+deleteUser: protectedProcedure.mutation(async ({ ctx, input }) => {
+  return ctx.services.userDAO.delete(input.userId);
+})
+
+// Inside DAO/Service: Permissions are checked here
+export class UserDAO extends Service {
+  async delete(id: string) {
+    // PermissionsGuard automatically gets permissions from async_local_storage context
+    // Throws exception if user doesn't have 'user/delete' permission
+    await PermissionsGuard.checkRequiredPermissions(['user/delete']);
+
+    // Safe to proceed with deletion
+    return db.user.delete({ where: { id } });
+  }
+}
 ```
+
+**Permission Flow:**
+1. `protectedProcedure` requires valid JWT token
+2. Middleware wraps handler with `runWithPermissions(permissions, userId, ...)`
+3. Permissions stored in `async_local_storage` context
+4. Service/DAO calls `checkRequiredPermissions(['user/delete'])`
+5. PermissionsGuard retrieves from async context automatically
+6. Returns success or throws exception if permission missing
 
 ## Complete Example: User Management
 
@@ -197,26 +227,53 @@ Return Response
 
 ## Best Practices
 
-1. **Always use protectedProcedure or permissionProcedure** for sensitive operations
-2. **Declare permissions at router level** (middleware) for clarity
-3. **Check permissions in services** for business logic validation using `PermissionsGuard.checkPermission()`
-4. **Don't manually wrap with withPermissions()** - `permissionProcedure` does it automatically
-5. **Keep permissions granular** (e.g., `user/read`, `user/write`, not just `admin`)
-6. **Validate JWT_SECRET** is set in production
-7. **Rotate secrets** regularly in production
+1. **Use protectedProcedure or permissionProcedure** - declares which permissions route needs
+2. **Check permissions in services/DAOs** - use `await PermissionsGuard.checkRequiredPermissions(['permission'])`
+3. **Don't check permissions in routes** - middleware handles it automatically via async context
+4. **Never manually call runWithPermissions()** - `permissionProcedure` does it automatically
+5. **Keep permissions granular** - e.g., `user/read`, `user/write`, `user/delete`, not just `admin`
+6. **Permissions checked at multiple levels** - route level for entry, service level for business logic
+7. **Validate JWT_SECRET** is set in production
+8. **Rotate secrets** regularly in production
 
-## How Permission Context Flows
+## Permission Context Flow
 
 ```
-Client Request with Authorization Header
-    ↓
-permissionProcedure middleware extracts permissions
-    ↓
-PermissionsGuard.runWithPermissions() wraps handler (automatic)
-    ↓
-Handler executes with async_local_storage context set
-    ↓
-Services call PermissionsGuard.checkPermission() - gets from context automatically
-    ↓
-No explicit permission passing needed through async call chain
+┌─────────────────────────────────────────────────────┐
+│ Client Request + Authorization Header               │
+│ Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...     │
+└──────────────────┬──────────────────────────────────┘
+                   │
+         Extract JWT Token
+                   ▼
+┌─────────────────────────────────────────────────────┐
+│ permissionProcedure(['user/delete'])                │
+│ - Extract userId and permissions from token         │
+│ - Check user has all required permissions           │
+│ - If yes: wrap with runWithPermissions() → proceed  │
+│ - If no: throw FORBIDDEN error                      │
+└──────────────────┬──────────────────────────────────┘
+                   │
+         runWithPermissions() sets async context
+                   ▼
+┌─────────────────────────────────────────────────────┐
+│ async_local_storage: {                              │
+│   permissions: ['user/delete', 'user/read'],        │
+│   userId: 'user123'                                 │
+│ }                                                    │
+└──────────────────┬──────────────────────────────────┘
+                   │
+     Handler executes with context available
+                   ▼
+┌─────────────────────────────────────────────────────┐
+│ Service/DAO Layer                                   │
+│ async delete(id) {                                  │
+│   await PermissionsGuard.checkRequiredPermissions() │
+│   // Gets permissions from async_local_storage ↑    │
+│   // Throws if missing                              │
+│   return db.user.delete(...)                        │
+│ }                                                    │
+└─────────────────────────────────────────────────────┘
 ```
+
+**Key Point:** No manual permission passing through layers - `async_local_storage` handles it!

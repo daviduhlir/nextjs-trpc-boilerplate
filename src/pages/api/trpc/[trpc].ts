@@ -4,6 +4,7 @@ import { appRouter } from '@/server/routers/_app';
 import { ensureServicesInitialized } from '@/server/init';
 import { ServicesContext } from '@/server/services';
 import { UserService } from '@/server/services/user.service';
+import { UserDAO } from '@/server/services/user.dao';
 import type { Context } from '@/server/context';
 
 /**
@@ -20,14 +21,16 @@ export default createNextApiHandler({
     // Ensure services are initialized
     await ensureServicesInitialized();
 
-    // Get service
+    // Get services from dependency injection container
     const userService = ServicesContext.lookup(UserService);
+    const userDAO = ServicesContext.lookup(UserDAO);
 
     return {
       req: req as any, // Type compatibility: NextApiRequest → Fetch Request
       headers: req.headers as any, // Type compatibility: IncomingHttpHeaders → Fetch Headers
       services: {
         user: userService,
+        userDAO,
       },
       userId: undefined,
       permissions: undefined,

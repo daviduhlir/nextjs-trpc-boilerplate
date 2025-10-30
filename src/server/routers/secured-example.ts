@@ -4,7 +4,6 @@ import { router } from '../trpc';
 import {
   publicProcedure,
   protectedProcedure,
-  permissionProcedure,
 } from '../auth/procedures';
 
 /**
@@ -34,56 +33,54 @@ export const securedExampleRouter = router({
   }),
 
   /**
-   * Permission-based endpoint - requires specific permissions
-   * permissionProcedure automatically wraps handler with PermissionsGuard context
+   * Permission-protected endpoint
+   * protectedProcedure wraps handler with PermissionsGuard context.
+   * Actual permission checks happen in service/DAO methods.
    */
-  updateSettings: permissionProcedure(['settings/write', 'user/admin']).input(
+  updateSettings: protectedProcedure.input(
     z.object({
       theme: z.enum(['light', 'dark']).optional(),
       notifications: z.boolean().optional(),
     })
   ).mutation(async ({ ctx, input }) => {
-    // Permission context is automatically available via PermissionsGuard
-    // Services can check permissions using PermissionsGuard.checkPermission()
+    // Service/DAO will check permissions via PermissionsGuard.checkRequiredPermissions()
     const userService = ctx.services.user;
 
     return {
       success: true,
       userId: ctx.userId,
       settings: input,
-      message: 'Settings updated with automatic permission context',
+      message: 'Settings updated - permissions checked in service layer',
     };
   }),
 
   /**
-   * Create user - only users with 'user/create' or 'admin' permission
-   * Permission context is automatically available in all service methods
+   * Create user - permission checked in service/DAO
+   * Service/DAO will call PermissionsGuard.checkRequiredPermissions(['user/create'])
    */
-  createUser: permissionProcedure(['user/create', 'admin']).input(
+  createUser: protectedProcedure.input(
     z.object({
       name: z.string().min(1),
       email: z.string().email(),
     })
   ).mutation(async ({ ctx, input }) => {
     const userService = ctx.services.user;
-
-    // Services can check permissions automatically via PermissionsGuard context
-    // PermissionsGuard.checkPermission('user/create') would work here
+    // userService or userDAO will check permissions automatically
     const newUser = userService.createUser(input.name, input.email);
 
     return {
       success: true,
       createdBy: ctx.userId,
       user: newUser,
-      message: 'User created with automatic permission context',
+      message: 'User created - permissions checked in service',
     };
   }),
 
   /**
-   * List users - only users with 'user/read' permission
-   * Permission context is automatically available
+   * List users - permission checked in service/DAO
+   * Service/DAO will call PermissionsGuard.checkRequiredPermissions(['user/read'])
    */
-  listUsers: permissionProcedure(['user/read']).query(async ({ ctx }) => {
+  listUsers: protectedProcedure.query(async ({ ctx }) => {
     const userService = ctx.services.user;
     const users = userService.getAllUsers();
 
@@ -95,10 +92,10 @@ export const securedExampleRouter = router({
   }),
 
   /**
-   * Delete user - only admins or users with 'user/delete' permission
-   * Permission context is automatically available in all service methods
+   * Delete user - permission checked in service/DAO
+   * Service/DAO will call PermissionsGuard.checkRequiredPermissions(['user/delete'])
    */
-  deleteUser: permissionProcedure(['user/delete', 'admin']).input(
+  deleteUser: protectedProcedure.input(
     z.object({ userId: z.string() })
   ).mutation(async ({ ctx, input }) => {
     if (input.userId === ctx.userId) {

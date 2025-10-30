@@ -10,10 +10,22 @@ export const publicProcedure = t.procedure;
 
 /**
  * Protected procedure - requires valid JWT token
- * Adds userId to context
+ *
+ * Wraps handler with PermissionsGuard context for permission checking.
+ * Permissions are NOT validated here - validation happens in service/DAO methods
+ * via PermissionsGuard.checkRequiredPermissions()
+ *
+ * Usage in routes:
+ *   protectedProcedure.query/mutation(async ({ ctx, input }) => {
+ *     // Service/DAO will call PermissionsGuard.checkRequiredPermissions()
+ *     return ctx.services.userDAO.delete(input.userId);
+ *   })
  */
 export const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
   const userId = extractUserId(
+    ctx.headers ? Object.fromEntries(ctx.headers) : undefined
+  );
+  const permissions = extractPermissions(
     ctx.headers ? Object.fromEntries(ctx.headers) : undefined
   );
 
@@ -24,73 +36,22 @@ export const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
     });
   }
 
-  return next({
-    ctx: {
-      ...ctx,
-      userId,
-    },
-  });
+  // Wrap handler execution with PermissionsGuard context
+  // This sets up async_local_storage so permissions are available
+  // to all service/DAO methods automatically
+  return PermissionsGuard.runWithPermissions(
+    permissions,
+    userId,
+    () =>
+      next({
+        ctx: {
+          ...ctx,
+          userId,
+          permissions,
+        },
+      })
+  );
 });
-
-/**
- * Protected procedure with permission checking
- * Requires valid JWT token AND specified permissions
- *
- * Automatically wraps handler execution with PermissionsGuard context,
- * so permissions are available to all async calls within the handler
- * without explicit wrapping.
- *
- * Usage: permissionProcedure(['entity/write', 'user/admin'])
- *   .mutation(async ({ ctx, input }) => {
- *     // ctx.services.user.delete() can now check permissions automatically
- *     return ctx.services.user.deleteUser(input.userId);
- *   })
- */
-export function permissionProcedure(requiredPermissions: string[]) {
-  return t.procedure.use(async ({ ctx, next }) => {
-    const userId = extractUserId(
-      ctx.headers ? Object.fromEntries(ctx.headers) : undefined
-    );
-    const permissions = extractPermissions(
-      ctx.headers ? Object.fromEntries(ctx.headers) : undefined
-    );
-
-    if (!userId) {
-      throw new TRPCError({
-        code: 'UNAUTHORIZED',
-        message: 'No authentication token provided',
-      });
-    }
-
-    // Check if user has required permissions
-    const hasPermission = requiredPermissions.every((perm) =>
-      permissions.includes(perm)
-    );
-
-    if (!hasPermission) {
-      throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: `Missing required permissions: ${requiredPermissions.join(', ')}`,
-      });
-    }
-
-    // Wrap handler execution with PermissionsGuard context
-    // This sets up async_local_storage so permissions are available
-    // to all service methods without explicit passing
-    return PermissionsGuard.runWithPermissions(
-      permissions,
-      userId,
-      () =>
-        next({
-          ctx: {
-            ...ctx,
-            userId,
-            permissions,
-          },
-        })
-    );
-  });
-}
 
 /**
  * Create a permission context helper
