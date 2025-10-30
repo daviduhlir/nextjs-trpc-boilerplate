@@ -19,12 +19,14 @@
     "test:watch": "mocha --watch"
   },
   "dependencies": {
+    "@david.uhlir/permissions-guard": "^0.0.14",
     "@david.uhlir/services": "^2.0.11",
     "@tanstack/react-query": "^5.45.0",
     "@trpc/client": "^11.0.0",
     "@trpc/next": "^11.0.0",
     "@trpc/react-query": "^11.0.0",
     "@trpc/server": "^11.0.0",
+    "jsonwebtoken": "^9.0.2",
     "next": "^15.0.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -32,6 +34,7 @@
   },
   "devDependencies": {
     "@types/chai": "^4.3.17",
+    "@types/jsonwebtoken": "^9.0.7",
     "@types/mocha": "^10.0.8",
     "@types/node": "^20.14.11",
     "@types/react": "^18.3.1",

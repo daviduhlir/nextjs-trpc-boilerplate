@@ -2,22 +2,28 @@ import { expect } from 'chai';
 import { ServicesContext } from '../services';
 import { UserService } from '../services/user.service';
 import { exampleRouter } from './example';
+import { ensureServicesInitialized } from '../init';
 
 /**
  * Unit tests for the example router
  * Tests tRPC procedures using Mocha and Chai
  */
 describe('Example Router', () => {
+  // Initialize services before running tests
+  before(async () => {
+    await ensureServicesInitialized();
+  });
+
   // Create a mock context for testing
   function createMockContext() {
-    // Note: Tests need services to be initialized first
-    // For now, create a minimal mock context
     return {
       req: undefined,
       headers: undefined,
       services: {
         user: ServicesContext.lookup(UserService),
       },
+      userId: undefined,
+      permissions: undefined,
     };
   }
 

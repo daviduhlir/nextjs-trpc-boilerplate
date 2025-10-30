@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(npm ls:*)",
-      "Bash(npm install)"
+      "Bash(npm install)",
+      "Bash(npm test:*)",
+      "Bash(npm run type-check:*)"
     ],
     "deny": [],
     "ask": []

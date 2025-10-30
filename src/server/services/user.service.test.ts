@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { UserService } from './user.service.js';
+import { UserService } from './user.service';
 
 /**
  * Unit tests for UserService

@@ -24,6 +24,9 @@ export async function createContext(opts?: FetchCreateContextFnOptions) {
     services: {
       user: userService,
     },
+    // Will be populated by auth middleware for protected procedures
+    userId: undefined as string | undefined,
+    permissions: undefined as string[] | undefined,
   };
 }
 
