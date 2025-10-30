@@ -1,13 +1,23 @@
 # Documentation
 
-This directory contains detailed documentation about the application architecture and security.
+This directory contains detailed documentation about the application architecture, security, and development guide.
 
 ## Files
 
+- **DEVELOPMENT.md** - Step-by-step guides for creating new pages, routes, and secured features (START HERE!)
 - **ARCHITECTURE.md** - Application architecture, layered design, and data flow
 - **SECURITY.md** - Authentication, JWT tokens, permission checking, and best practices
 
 ## Quick Links
+
+### Getting Started (READ FIRST)
+Read [DEVELOPMENT.md](./DEVELOPMENT.md) to learn:
+- How to create a new Frontend page
+- How to create a new tRPC route
+- How to create secured (protected) routes
+- Service + DAO pattern implementation
+- Writing tests
+- Best practices and common patterns
 
 ### For New Developers
 Start with [ARCHITECTURE.md](./ARCHITECTURE.md) to understand:
