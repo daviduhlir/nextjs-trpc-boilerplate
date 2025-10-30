@@ -1,7 +1,6 @@
 {
-  "require": ["ts-node/register"],
-  "extensions": ["ts"],
-  "spec": ["src/**/*.test.ts"],
+  "extensions": ["js"],
+  "spec": ["dist/**/*.test.js"],
   "timeout": 5000,
   "exit": true
 }

@@ -13,7 +13,7 @@ export const securedExampleRouter = router({
   /**
    * Public endpoint - no authentication required
    */
-  status: publicProcedure.query(({ ctx }) => {
+  status: publicProcedure.query(() => {
     return {
       status: 'ok',
       message: 'This is a public endpoint',
@@ -44,7 +44,7 @@ export const securedExampleRouter = router({
     })
   ).mutation(async ({ ctx, input }) => {
     // Service/DAO will check permissions via PermissionsGuard.checkRequiredPermissions()
-    const userService = ctx.services.user;
+    // Permission validation happens in service/DAO layer
 
     return {
       success: true,

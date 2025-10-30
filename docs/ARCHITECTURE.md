@@ -117,7 +117,7 @@ export class UserDAO extends Service {
     await PermissionsGuard.checkRequiredPermissions(['user/delete']);
 
     // Safe to proceed with deletion
-    return this.getDb().user.delete({ where: { id } });
+    return this.databaseService.getPrisma().user.delete({ where: { id } });
   }
 }
 ```
@@ -182,14 +182,15 @@ Request flows through layers:
 ```
 1. Frontend calls: trpc.secured.createUser.mutate({ name, email })
 
-2. Route handler (permissionProcedure):
-   permissionProcedure(['user/create']).mutation(async ({ ctx, input }) => {
+2. Route handler (protectedProcedure):
+   protectedProcedure.mutation(async ({ ctx, input }) => {
      return ctx.services.userDAO.create(input.name, input.email);
    })
 
 3. DAO layer (UserDAO):
    async create(name: string, email: string) {
-     return this.getDb().user.create({ data: { name, email } });
+     await PermissionsGuard.checkRequiredPermissions(['user/create']);
+     return this.databaseService.getPrisma().user.create({ data: { name, email } });
    }
 
 4. Database layer (Prisma):

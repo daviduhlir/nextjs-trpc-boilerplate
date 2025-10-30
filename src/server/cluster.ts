@@ -58,7 +58,7 @@ export async function startCluster(
   } else {
     // Worker process
     const workerId = cluster.worker?.id || 0;
-    const port = 3000 + workerId; // Offset port per worker (for debugging)
+    const _port = 3000 + workerId; // Offset port per worker (for debugging)
 
     console.log(`[Worker ${workerId}] Initializing services...`);
     await initializeServices();

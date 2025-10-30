@@ -247,11 +247,10 @@ Return Response
          Extract JWT Token
                    ▼
 ┌─────────────────────────────────────────────────────┐
-│ permissionProcedure(['user/delete'])                │
+│ protectedProcedure middleware                       │
 │ - Extract userId and permissions from token         │
-│ - Check user has all required permissions           │
-│ - If yes: wrap with runWithPermissions() → proceed  │
-│ - If no: throw FORBIDDEN error                      │
+│ - Wrap with runWithPermissions() → set async context│
+│ - If no token: throw UNAUTHORIZED error             │
 └──────────────────┬──────────────────────────────────┘
                    │
          runWithPermissions() sets async context

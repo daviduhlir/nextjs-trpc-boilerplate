@@ -9,18 +9,18 @@ import { DatabaseService } from './database.service';
  *
  * Permission checking:
  * - PermissionsGuard.checkRequiredPermissions() checks against async_local_storage context
- * - Permissions are set via permissionProcedure middleware automatically
+ * - Permissions are set via protectedProcedure middleware automatically
  * - Throws exception if user doesn't have required permission
  *
- * Usage: ServicesContext.lookup(UserDAO).createUser(...)
+ * Usage: ServicesContext.lookup(UserDAO).create(...)
  */
 export class UserDAO extends Service {
   /**
-   * Get DatabaseService instance
+   * DatabaseService injected via decorator
+   * Provides access to Prisma client
    */
-  private getDb() {
-    return ServicesContext.lookup(DatabaseService).getPrisma();
-  }
+  @ServicesContext.inject(DatabaseService)
+  private databaseService!: DatabaseService;
 
   /**
    * Create a new user in database
@@ -29,7 +29,7 @@ export class UserDAO extends Service {
     // Permission check - PermissionsGuard gets permissions from async context
     await PermissionsGuard.checkRequiredPermissions(['user/create']);
 
-    const db = this.getDb();
+    const db = this.databaseService.getPrisma();
     return db.user.create({
       data: {
         name,
@@ -43,7 +43,7 @@ export class UserDAO extends Service {
    */
   async findById(id: string) {
     // Read operations might not need permissions, depends on business logic
-    const db = this.getDb();
+    const db = this.databaseService.getPrisma();
     return db.user.findUnique({
       where: { id },
     });
@@ -53,7 +53,7 @@ export class UserDAO extends Service {
    * Get user by email
    */
   async findByEmail(email: string) {
-    const db = this.getDb();
+    const db = this.databaseService.getPrisma();
     return db.user.findUnique({
       where: { email },
     });
@@ -66,7 +66,7 @@ export class UserDAO extends Service {
     // Permission check for reading all users
     await PermissionsGuard.checkRequiredPermissions(['user/read']);
 
-    const db = this.getDb();
+    const db = this.databaseService.getPrisma();
     return db.user.findMany();
   }
 
@@ -77,7 +77,7 @@ export class UserDAO extends Service {
     // Permission check for updates
     await PermissionsGuard.checkRequiredPermissions(['user/write']);
 
-    const db = this.getDb();
+    const db = this.databaseService.getPrisma();
     return db.user.update({
       where: { id },
       data,
@@ -92,7 +92,7 @@ export class UserDAO extends Service {
     // PermissionsGuard gets permissions from async_local_storage, throws if missing
     await PermissionsGuard.checkRequiredPermissions(['user/delete']);
 
-    const db = this.getDb();
+    const db = this.databaseService.getPrisma();
     const user = await db.user.findUnique({ where: { id } });
     if (!user) {
       return null;

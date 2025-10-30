@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { ServicesContext } from './services';
 import { UserService } from './services/user.service';
 import { DatabaseService } from './services/database.service';

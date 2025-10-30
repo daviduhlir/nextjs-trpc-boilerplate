@@ -16,6 +16,7 @@ RUN npm ci
 # Copy source code
 COPY src ./src
 COPY public ./public
+COPY prisma ./prisma
 
 # Build Next.js application (includes frontend and API routes)
 RUN npm run build
@@ -29,7 +30,7 @@ WORKDIR /app
 RUN apk add --no-cache nginx curl
 
 # Copy entrypoint script
-COPY scripts/docker-entrypoint.sh ./docker-entrypoint.sh
+COPY docker/entrypoint.sh ./docker-entrypoint.sh
 RUN chmod +x ./docker-entrypoint.sh
 
 # Copy package files for production dependencies
@@ -44,7 +45,7 @@ COPY --from=builder /app/.next /app/.next
 COPY --from=builder /app/public /app/public
 
 # Copy Nginx configuration
-COPY nginx.conf /etc/nginx/nginx.conf
+COPY docker/nginx.conf /etc/nginx/nginx.conf
 
 # Create Nginx cache and pid directories
 RUN mkdir -p /var/run/nginx /var/cache/nginx \

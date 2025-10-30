@@ -3,8 +3,8 @@ version: '3.8'
 services:
   app:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: docker/Dockerfile
     ports:
       - '80:80'
       - '3000:3000'
@@ -13,8 +13,8 @@ services:
       PORT: 3000
       API_URL: http://localhost
     volumes:
-      - ./src:/app/src
-      - ./public:/app/public
+      - ../src:/app/src
+      - ../public:/app/public
     restart: unless-stopped
     healthcheck:
       test: ['CMD', 'curl', '-f', 'http://localhost/api/health']
@@ -33,7 +33,7 @@ services:
     environment:
       NODE_ENV: development
     volumes:
-      - .:/app
+      - ..:/app
       - /app/node_modules
     profiles:
       - dev

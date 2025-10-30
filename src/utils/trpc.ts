@@ -1,17 +1,18 @@
 import { httpBatchLink } from '@trpc/client';
 import { createTRPCNext } from '@trpc/next';
-import type { AppRouter } from '@/server/routers/_app';
+import type { AppRouter } from '@/shared/types';
 
 /**
  * Initialize tRPC client for Next.js
- * Sets up communication with the backend API
+ * Connects to standalone backend server
+ * Note: Only imports types from @/shared/types, NO backend code
  */
 export const trpc = createTRPCNext<AppRouter>({
   config() {
     return {
       links: [
         httpBatchLink({
-          url: `${getBaseUrl()}/api/trpc`,
+          url: `${getBackendUrl()}/trpc`,
           maxURLLength: 2083,
         }),
       ],
@@ -21,15 +22,14 @@ export const trpc = createTRPCNext<AppRouter>({
 });
 
 /**
- * Get the base URL for API calls
- * @returns Base URL depending on environment
+ * Get the backend URL for tRPC calls
+ * @returns Backend URL depending on environment
  */
-function getBaseUrl() {
+function getBackendUrl() {
   if (typeof window !== 'undefined') {
-    return '';
+    // Browser - use relative or backend URL
+    return process.env.NEXT_PUBLIC_BACKEND_URL || `http://localhost:${process.env.NEXT_PUBLIC_BACKEND_PORT || 3001}`;
   }
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`;
-  }
-  return `http://localhost:${process.env.PORT || 3000}`;
+  // Server - use environment variable or default
+  return process.env.BACKEND_URL || `http://localhost:${process.env.BACKEND_PORT || 3001}`;
 }
