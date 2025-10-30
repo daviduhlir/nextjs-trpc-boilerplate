@@ -1,0 +1,50 @@
+{
+  "name": "nextjs-trpc-boilerplate",
+  "version": "1.0.0",
+  "description": "Minimal Next.js + tRPC boilerplate with TypeScript and Mocha",
+  "scripts": {
+    "dev:fe": "next dev",
+    "dev:be": "next dev",
+    "dev": "npm run dev:fe",
+    "build:fe": "next build",
+    "build:be": "tsc --outDir dist --declaration",
+    "build": "npm run build:fe && npm run build:be",
+    "start": "NODE_ENV=production next start",
+    "build:docker": "docker build -t nextjs-trpc:latest .",
+    "lint": "next lint",
+    "format": "prettier --write \"src/**/*.{ts,tsx,json,md}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,json,md}\"",
+    "type-check": "tsc --noEmit",
+    "test": "mocha",
+    "test:watch": "mocha --watch"
+  },
+  "dependencies": {
+    "@david.uhlir/services": "^2.0.11",
+    "@tanstack/react-query": "^5.45.0",
+    "@trpc/client": "^11.0.0",
+    "@trpc/next": "^11.0.0",
+    "@trpc/react-query": "^11.0.0",
+    "@trpc/server": "^11.0.0",
+    "next": "^15.0.3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.3.17",
+    "@types/mocha": "^10.0.8",
+    "@types/node": "^20.14.11",
+    "@types/react": "^18.3.1",
+    "@types/react-dom": "^18.3.0",
+    "chai": "^4.4.1",
+    "mocha": "^10.7.0",
+    "prettier": "^3.3.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3"
+  },
+  "overrides": {
+    "glob": "^10.3.10",
+    "rimraf": "^4.4.1",
+    "inflight": "^1.0.6"
+  }
+}
